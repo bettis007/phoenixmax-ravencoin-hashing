@@ -9,7 +9,7 @@
                 "boolberry.cc",
                 "c11.c",
                 "cryptonight.c",
-				"cryptonight_fast.c",
+		"cryptonight_fast.c",
                 "fresh.c",
                 "fugue.c",
                 "groestl.c",
