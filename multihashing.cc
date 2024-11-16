@@ -54,7 +54,7 @@ using namespace v8;
 #define SET_BOOLEAN_RETURN(x) \
     args.GetReturnValue().Set(Boolean::New(isolate, x));
 
-#define isolate->ThrowError(msg) \
+#define isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "Argument error").ToLocalChecked())); \
     do { \
         isolate->ThrowError(Exception::Error(v8::String::NewFromUtf8(isolate(isolate, msg).ToLocalChecked()).ToLocalChecked().ToLocalChecked()); \
         return; \
@@ -80,7 +80,7 @@ using namespace v8;
 #define SET_BOOLEAN_RETURN(x) \
     return scope.Close(Boolean::New(x));
 
-#define isolate->ThrowError(msg) \
+#define isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(isolate, "Argument error").ToLocalChecked())); \
     return ThrowError(Exception::Error(String::New(msg)))
 
 #endif // NODE_MAJOR_VERSION
@@ -142,8 +142,8 @@ DECLARE_FUNC(scrypt) {
    if(!Buffer::HasInstance(target))
        isolate->ThrowError("Argument should be a buffer object.");
 
-   unsigned int nValue = args[1]->Uint32Value();
-   unsigned int rValue = args[2]->Uint32Value();
+   unsigned int nValue = args[1]->ToInteger(isolate->GetCurrentContext()).ToLocalChecked()->Value();
+   unsigned int rValue = args[2]->ToInteger(isolate->GetCurrentContext()).ToLocalChecked()->Value();
 
    char * input = Buffer::Data(target);
    char output[32];
@@ -166,8 +166,8 @@ DECLARE_FUNC(neoscrypt) {
    if(!Buffer::HasInstance(target))
        isolate->ThrowError("Argument should be a buffer object.");
 
-   // unsigned int nValue = args[1]->Uint32Value();
-   // unsigned int rValue = args[2]->Uint32Value();
+   // unsigned int nValue = args[1]->ToInteger(isolate->GetCurrentContext()).ToLocalChecked()->Value();
+   // unsigned int rValue = args[2]->ToInteger(isolate->GetCurrentContext()).ToLocalChecked()->Value();
 
    char * input = Buffer::Data(target);
    char output[32];
@@ -190,7 +190,7 @@ DECLARE_FUNC(scryptn) {
    if(!Buffer::HasInstance(target))
        isolate->ThrowError("Argument should be a buffer object.");
 
-   unsigned int nFactor = args[1]->Uint32Value();
+   unsigned int nFactor = args[1]->ToInteger(isolate->GetCurrentContext()).ToLocalChecked()->Value();
 
    char * input = Buffer::Data(target);
    char output[32];
@@ -245,7 +245,7 @@ DECLARE_FUNC(cryptonight) {
         if(args[1]->IsBoolean())
             fast = args[1]->BooleanValue();
         else if(args[1]->IsUint32())
-            cn_variant = args[1]->Uint32Value();
+            cn_variant = args[1]->ToInteger(isolate->GetCurrentContext()).ToLocalChecked()->Value();
         else
             isolate->ThrowError("Argument 2 should be a boolean or uint32_t");
     }
@@ -256,7 +256,7 @@ DECLARE_FUNC(cryptonight) {
 
     if (args.Length() >= 3) {
         if(args[2]->IsUint32())
-            height = args[2]->Uint32Value();
+            height = args[2]->ToInteger(isolate->GetCurrentContext()).ToLocalChecked()->Value();
         else
             isolate->ThrowError("Argument 3 should be uint32_t");
     }
@@ -293,7 +293,7 @@ DECLARE_FUNC(cryptonightfast) {
         if(args[1]->IsBoolean())
             fast = args[1]->BooleanValue();
         else if(args[1]->IsUint32())
-            cn_variant = args[1]->Uint32Value();
+            cn_variant = args[1]->ToInteger(isolate->GetCurrentContext()).ToLocalChecked()->Value();
         else
             isolate->ThrowError("Argument 2 should be a boolean or uint32_t");
     }
@@ -335,7 +335,7 @@ DECLARE_FUNC(boolberry) {
 
     if(args.Length() >= 3) {
         if(args[2]->IsUint32())
-            height = args[2]->Uint32Value();
+            height = args[2]->ToInteger(isolate->GetCurrentContext()).ToLocalChecked()->Value();
         else
             isolate->ThrowError("Argument 3 should be an unsigned integer.");
     }
