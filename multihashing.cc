@@ -54,9 +54,9 @@ using namespace v8;
 #define SET_BOOLEAN_RETURN(x) \
     args.GetReturnValue().Set(Boolean::New(isolate, x));
 
-#define RETURN_EXCEPT(msg) \
+#define isolate->ThrowError(msg) \
     do { \
-        isolate->ThrowError(Exception::Error(String::NewFromUtf8(isolate(isolate, msg)).ToLocalChecked()); \
+        isolate->ThrowError(Exception::Error(v8::String::NewFromUtf8(isolate(isolate, msg).ToLocalChecked()).ToLocalChecked().ToLocalChecked()); \
         return; \
     } while (0)
 
@@ -80,7 +80,7 @@ using namespace v8;
 #define SET_BOOLEAN_RETURN(x) \
     return scope.Close(Boolean::New(x));
 
-#define RETURN_EXCEPT(msg) \
+#define isolate->ThrowError(msg) \
     return ThrowError(Exception::Error(String::New(msg)))
 
 #endif // NODE_MAJOR_VERSION
@@ -90,12 +90,12 @@ using namespace v8;
     DECLARE_SCOPE; \
  \
     if (args.Length() < 1) \
-        RETURN_EXCEPT("You must provide one argument."); \
+        isolate->ThrowError("You must provide one argument."); \
  \
     Local<Object> target = args[0]->As<v8::Object>(); \
  \
     if(!Buffer::HasInstance(target)) \
-        RETURN_EXCEPT("Argument should be a buffer object."); \
+        isolate->ThrowError("Argument should be a buffer object."); \
  \
     char * input = Buffer::Data(target); \
     char output[32]; \
@@ -135,12 +135,12 @@ DECLARE_FUNC(scrypt) {
    DECLARE_SCOPE;
 
    if (args.Length() < 3)
-       RETURN_EXCEPT("You must provide buffer to hash, N value, and R value");
+       isolate->ThrowError("You must provide buffer to hash, N value, and R value");
 
    Local<Object> target = args[0]->As<v8::Object>();
 
    if(!Buffer::HasInstance(target))
-       RETURN_EXCEPT("Argument should be a buffer object.");
+       isolate->ThrowError("Argument should be a buffer object.");
 
    unsigned int nValue = args[1]->Uint32Value();
    unsigned int rValue = args[2]->Uint32Value();
@@ -159,12 +159,12 @@ DECLARE_FUNC(neoscrypt) {
    DECLARE_SCOPE;
 
    if (args.Length() < 2)
-       RETURN_EXCEPT("You must provide two arguments");
+       isolate->ThrowError("You must provide two arguments");
 
    Local<Object> target = args[0]->As<v8::Object>();
 
    if(!Buffer::HasInstance(target))
-       RETURN_EXCEPT("Argument should be a buffer object.");
+       isolate->ThrowError("Argument should be a buffer object.");
 
    // unsigned int nValue = args[1]->Uint32Value();
    // unsigned int rValue = args[2]->Uint32Value();
@@ -183,12 +183,12 @@ DECLARE_FUNC(scryptn) {
    DECLARE_SCOPE;
 
    if (args.Length() < 2)
-       RETURN_EXCEPT("You must provide buffer to hash and N factor.");
+       isolate->ThrowError("You must provide buffer to hash and N factor.");
 
    Local<Object> target = args[0]->As<v8::Object>();
 
    if(!Buffer::HasInstance(target))
-       RETURN_EXCEPT("Argument should be a buffer object.");
+       isolate->ThrowError("Argument should be a buffer object.");
 
    unsigned int nFactor = args[1]->Uint32Value();
 
@@ -209,12 +209,12 @@ DECLARE_FUNC(scryptjane) {
     DECLARE_SCOPE;
 
     if (args.Length() < 5)
-        RETURN_EXCEPT("You must provide two argument: buffer, timestamp as number, and nChainStarTime as number, nMin, and nMax");
+        isolate->ThrowError("You must provide two argument: buffer, timestamp as number, and nChainStarTime as number, nMin, and nMax");
 
     Local<Object> target = args[0]->As<v8::Object>();
 
     if(!Buffer::HasInstance(target))
-        RETURN_EXCEPT("First should be a buffer object.");
+        isolate->ThrowError("First should be a buffer object.");
 
     int timestamp = args[1]->Int32Value();
     int nChainStartTime = args[2]->Int32Value();
@@ -239,7 +239,7 @@ DECLARE_FUNC(cryptonight) {
     uint64_t height = 0;
 
     if (args.Length() < 1)
-        RETURN_EXCEPT("You must provide one argument.");
+        isolate->ThrowError("You must provide one argument.");
 
     if (args.Length() >= 2) {
         if(args[1]->IsBoolean())
@@ -247,24 +247,24 @@ DECLARE_FUNC(cryptonight) {
         else if(args[1]->IsUint32())
             cn_variant = args[1]->Uint32Value();
         else
-            RETURN_EXCEPT("Argument 2 should be a boolean or uint32_t");
+            isolate->ThrowError("Argument 2 should be a boolean or uint32_t");
     }
 
     if ((cn_variant == 4) && (args.Length() < 3)) {
-        RETURN_EXCEPT("You must provide Argument 3 (block height) for Cryptonight variant 4");
+        isolate->ThrowError("You must provide Argument 3 (block height) for Cryptonight variant 4");
     }
 
     if (args.Length() >= 3) {
         if(args[2]->IsUint32())
             height = args[2]->Uint32Value();
         else
-            RETURN_EXCEPT("Argument 3 should be uint32_t");
+            isolate->ThrowError("Argument 3 should be uint32_t");
     }
 
     Local<Object> target = args[0]->As<v8::Object>();
 
     if(!Buffer::HasInstance(target))
-        RETURN_EXCEPT("Argument should be a buffer object.");
+        isolate->ThrowError("Argument should be a buffer object.");
 
     char * input = Buffer::Data(target);
     char output[32];
@@ -275,7 +275,7 @@ DECLARE_FUNC(cryptonight) {
         cryptonight_fast_hash(input, output, input_len);
     else {
         if ((cn_variant == 1) && input_len < 43)
-            RETURN_EXCEPT("Argument must be 43 bytes for monero variant 1");
+            isolate->ThrowError("Argument must be 43 bytes for monero variant 1");
         cryptonight_hash(input, output, input_len, cn_variant, height);
     }
     SET_BUFFER_RETURN(output, 32);
@@ -287,7 +287,7 @@ DECLARE_FUNC(cryptonightfast) {
     uint32_t cn_variant = 0;
 
     if (args.Length() < 1)
-        RETURN_EXCEPT("You must provide one argument.");
+        isolate->ThrowError("You must provide one argument.");
 
     if (args.Length() >= 2) {
         if(args[1]->IsBoolean())
@@ -295,13 +295,13 @@ DECLARE_FUNC(cryptonightfast) {
         else if(args[1]->IsUint32())
             cn_variant = args[1]->Uint32Value();
         else
-            RETURN_EXCEPT("Argument 2 should be a boolean or uint32_t");
+            isolate->ThrowError("Argument 2 should be a boolean or uint32_t");
     }
 
     Local<Object> target = args[0]->As<v8::Object>();
 
     if(!Buffer::HasInstance(target))
-        RETURN_EXCEPT("Argument should be a buffer object.");
+        isolate->ThrowError("Argument should be a buffer object.");
 
     char * input = Buffer::Data(target);
     char output[32];
@@ -312,7 +312,7 @@ DECLARE_FUNC(cryptonightfast) {
         cryptonightfast_fast_hash(input, output, input_len);
     else {
         if (cn_variant > 0 && input_len < 43)
-            RETURN_EXCEPT("Argument must be 43 bytes for monero variant 1+");
+            isolate->ThrowError("Argument must be 43 bytes for monero variant 1+");
         cryptonightfast_hash(input, output, input_len, cn_variant);
     }
     SET_BUFFER_RETURN(output, 32);
@@ -321,23 +321,23 @@ DECLARE_FUNC(boolberry) {
     DECLARE_SCOPE;
 
     if (args.Length() < 2)
-        RETURN_EXCEPT("You must provide two arguments.");
+        isolate->ThrowError("You must provide two arguments.");
 
     Local<Object> target = args[0]->As<v8::Object>();
     Local<Object> target_spad = args[1]->As<v8::Object>();
     uint32_t height = 1;
 
     if(!Buffer::HasInstance(target))
-        RETURN_EXCEPT("Argument 1 should be a buffer object.");
+        isolate->ThrowError("Argument 1 should be a buffer object.");
 
     if(!Buffer::HasInstance(target_spad))
-        RETURN_EXCEPT("Argument 2 should be a buffer object.");
+        isolate->ThrowError("Argument 2 should be a buffer object.");
 
     if(args.Length() >= 3) {
         if(args[2]->IsUint32())
             height = args[2]->Uint32Value();
         else
-            RETURN_EXCEPT("Argument 3 should be an unsigned integer.");
+            isolate->ThrowError("Argument 3 should be an unsigned integer.");
     }
 
     char * input = Buffer::Data(target);
